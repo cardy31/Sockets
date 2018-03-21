@@ -1,6 +1,4 @@
-#!/usr/bin/python             # This is client.py file
-
-import socket                 # Import socket module
+import socket
 
 
 def main():
@@ -18,9 +16,9 @@ class Client:
 
     @staticmethod
     def start_client():
-        s = socket.socket()           # Create a socket object
-        host = socket.gethostname()   # Get local machine name
-        port = 12345                  # Reserve a port for your service.
+        s = socket.socket()
+        host = socket.gethostname()
+        port = 12345
         s.connect((host, port))
 
         return s
