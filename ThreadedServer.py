@@ -18,7 +18,7 @@ class ThreadedServer:
             self.host = host
         self.port = port
         self.sock = socket.socket()
-        self.sock.bind(('', self.port))
+        self.sock.bind((self.host, self.port))
 
     def listen(self):
         self.sock.listen(5)
@@ -44,7 +44,7 @@ class ThreadedServer:
                     elif type == 'showall':
                         client.send(self.dictionary.__str__().encode())
                     else:
-                        client.send('Incorrect format. Must be <get/set> <key>:<(if get)value>'.encode())
+                        client.send('Incorrect format. Type \'h\' for type'.encode())
 
                 else:
                     raise Exception('Client disconnected')
