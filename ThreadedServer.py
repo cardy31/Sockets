@@ -27,7 +27,7 @@ class ThreadedServer:
             client.settimeout(60)
             threading.Thread(target=self.listen_to_client, args=(client, address)).start()
 
-    def listen_to_client(self, client, address):
+    def listen_to_client(self, client):
         size = 1024
         while True:
             try:
