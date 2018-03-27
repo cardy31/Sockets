@@ -2,22 +2,21 @@ import socket
 from time import sleep
 
 
-def main():
-    Client()
-
-
 class Client:
 
-    def __init__(self):
-        print("Welcome to this simple redis-like application. This acts as a key/value store on a server.")
-        print("Type 'h' for help")
+    sock = None
 
+    def __init__(self):
         sock = None
-        print("\nEstablishing connection...")
+        print('\nEstablishing connection...')
         while sock is None:
             sock = self.start_client()
-        print("Connection established.")
-        self.listen(sock)
+        print('Connection established\n')
+        self.run = True
+        self.sock = sock
+        # Welcome message
+        print('Welcome to this simple redis-like application. This acts as a key/value store on a server.')
+        print('Type \'h\' for help')
 
     @staticmethod
     def start_client():
@@ -32,32 +31,49 @@ class Client:
             return None
         return sock
 
-    def listen(self, sock):
-        while True:
-            text = input("> ")
-            if text == 'h':
-                self.print_help()
-            elif text == '':
-                pass
+    '''
+    Added to make testing easier
+    '''
+    def listen_driver(self):
+        while self.run:
+            output = self.listen()
+            if output is not None:
+                print(output)
+        self.cleanup()
+
+    def listen(self):
+        text = input('> ')
+        if text == 'h':
+            return self.print_help()
+        elif text == '':
+            return None
+        elif text == 'exit':
+            self.run = False
+            return 'Goodbye :-)'
+        else:
+            if text.__sizeof__() > 1024:
+                return "Total size of input cannot be greater than 1024 bytes."
             else:
-                if text.__sizeof__() > 1024:
-                    print("Total size of input cannot be greater than 1024 bytes.")
-                else:
-                    sock.send(text.encode())
-                    print(sock.recv(1024).decode())
+                self.sock.send(text.encode())
+                data = self.sock.recv(1024).decode()
+                return data
 
     @staticmethod
     def print_help():
-        print("Help Menu")
-        print("Add a value to the dictionary:\n"
-              "    set <key>:<value>")
-        print("Retrieve a value from the dictionary:\n"
-              "    get <key>")
-        print("Delete a value from the dictionary:\n"
-              "    delete <key>")
-        print("See all values in the dictionary:\n"
-              "    showall")
-        print("Please note that values stored by one user can by accessed by any other user.")
+        return "Help Menu\n" + \
+            "Add a value to the dictionary:\n" \
+            "    set <key>:<value>\n" \
+            "Retrieve a value from the dictionary:\n" \
+            "    get <key>\n" \
+            "Delete a value from the dictionary:\n" \
+            "     delete <key>\n" + \
+            "See all values in the dictionary:\n" \
+            "    showall\n" \
+            "Please note that values stored by one user can by accessed by any other user."
+
+    def cleanup(self):
+        self.sock.close()
 
 
-main()
+if __name__ == "__main__":
+    Client().listen_driver()

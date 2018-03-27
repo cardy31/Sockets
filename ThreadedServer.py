@@ -2,13 +2,9 @@ import socket
 import threading
 
 
-def main():
-    port_num = 12345
-    ThreadedServer('', port_num).listen()
-
-
 class ThreadedServer:
 
+    # Key/value storage
     dictionary = {}
 
     def __init__(self, host, port):
@@ -25,7 +21,8 @@ class ThreadedServer:
         while True:
             client, address = self.sock.accept()
             client.settimeout(60)
-            threading.Thread(target=self.listen_to_client, args=(client, address)).start()
+            # Create a new thread for every client
+            threading.Thread(target=self.listen_to_client, args=(client,)).start()
 
     def listen_to_client(self, client):
         size = 1024
@@ -33,15 +30,15 @@ class ThreadedServer:
             try:
                 data = client.recv(size).decode()
                 if data:
-                    type = data.split(' ')[0]
+                    request_type = data.split(' ')[0]
 
-                    if type == 'set':
+                    if request_type == 'set':
                         client.send(self.set(data).encode())
-                    elif type == 'get':
+                    elif request_type == 'get':
                         client.send(self.get(data).encode())
-                    elif type == 'delete':
+                    elif request_type == 'delete':
                         client.send(self.delete(data).encode())
-                    elif type == 'showall':
+                    elif request_type == 'showall':
                         client.send(self.dictionary.__str__().encode())
                     else:
                         client.send('Incorrect format. Type \'h\' for type'.encode())
@@ -57,24 +54,31 @@ class ThreadedServer:
         if value is not None:
             return value
         else:
-            return "Could not find a value for that key"
+            return 'Could not find an entry for that key'
 
     def set(self, data):
         key = data.split(':')[0][4:]
-        value = data.split(':')[1]
+        value = data.split(':')
+        if len(value) > 1:
+            value = value[1]
+        else:
+            value = None
         if key is not None and value is not None:
             self.dictionary.update({key: value})
+            return 'Set new entry\n    key: {}, value: {}'.format(key, value)
         else:
-            return "Must have key and value in set command"
-        return "Set new entry\n    key: {}, value: {}".format(key, value)
+            return 'Must have key and value in set command'
 
     def delete(self, data):
         key = data[7:]
         if key in self.dictionary:
             self.dictionary.pop(key)
-            return "Deleted {}".format(key)
+            return 'Deleted {}'.format(key)
         else:
-            return "Could not find an entry for that key"
+            return 'Could not find an entry for that key'
 
 
-main()
+if __name__ == '__main__':
+    port_num = 12345
+    hostname = socket.gethostname()
+    ThreadedServer(hostname, port_num).listen()
