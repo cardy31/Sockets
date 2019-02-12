@@ -7,6 +7,8 @@ class ThreadedServer:
     # Key/value storage
     dictionary = {}
 
+    lock = threading.Lock()
+
     def __init__(self, host, port):
         if host is None:
             self.host = socket.gethostname()
@@ -63,18 +65,24 @@ class ThreadedServer:
             value = value[1]
         else:
             value = None
+        self.lock.acquire()
         if key is not None and value is not None:
             self.dictionary.update({key: value})
+            self.lock.release()
             return 'Set new entry\n    key: {}, value: {}'.format(key, value)
         else:
+            self.lock.release()
             return 'Must have key and value in set command'
 
     def delete(self, data):
         key = data[7:]
+        self.lock.acquire()
         if key in self.dictionary:
             self.dictionary.pop(key)
+            self.lock.release()
             return 'Deleted {}'.format(key)
         else:
+            self.lock.release()
             return 'Could not find an entry for that key'
 
 
